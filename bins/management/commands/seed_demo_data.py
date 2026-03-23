@@ -32,15 +32,15 @@ class Command(BaseCommand):
             )
             
             # Generate 24 hours of readings (every 30 mins -> 49 readings)
-            current_distance = b_data["total_depth_cm"] # Starts empty (distance = depth)
+            current_distance = b_data["total_depth_cm"]
             
             # Differentiate fill curves for realistic demo
             if b_data["bin_id"] == "BIN-002":
-                fill_rate = 2.0  # cm per 30 min (Fast)
+                fill_rate = 2.0 
             elif b_data["bin_id"] == "BIN-003":
-                fill_rate = 3.5  # Very Fast (likely to be full)
+                fill_rate = 3.5 
             else:
-                fill_rate = 0.5  # Slow
+                fill_rate = 0.5 
                 
             readings = []
             for i in range(48, -1, -1):
@@ -49,9 +49,9 @@ class Command(BaseCommand):
                 # Reduce distance (filling up)
                 current_distance -= fill_rate * (1 + random.uniform(-0.2, 0.2))
                 if current_distance < 15:
-                    current_distance = 15  # almost full
+                    current_distance = 15
                     
-                    if random.random() < 0.15: # 15% chance it was emptied
+                    if random.random() < 0.15: 
                         current_distance = b_data["total_depth_cm"]
                         
                 # Ensure within bounds
@@ -67,10 +67,8 @@ class Command(BaseCommand):
                 reading.timestamp = timestamp
                 readings.append(reading)
                 
-            # We use bulk_create and then update the timestamp explicitly because auto_now_add can override it
             Reading.objects.bulk_create(readings)
             
-            # After bulk create, we need to explicitly set the timestamps
             created_readings = list(Reading.objects.filter(bin=bin_obj).order_by('id'))
             for r, orig_r in zip(created_readings, readings):
                 Reading.objects.filter(pk=r.pk).update(timestamp=orig_r.timestamp)
